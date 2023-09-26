@@ -15,4 +15,9 @@ public class Result
     /// </summary>
     /// <example>Example of the output.</example>
     public string Output { get; private set; }
+
+    /// <summary>
+    /// Result query string.
+    /// </summary>
+    public string Query { get; set; }
 }
