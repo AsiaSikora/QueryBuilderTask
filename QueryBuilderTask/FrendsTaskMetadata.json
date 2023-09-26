@@ -1,0 +1,7 @@
+﻿{
+	"Tasks": [
+		{
+			"TaskMethod": "QueryBuilderTask.QueryBuilder.QuerBuilder"
+		}
+	]
+}
