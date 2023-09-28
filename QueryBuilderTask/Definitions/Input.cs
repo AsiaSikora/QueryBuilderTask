@@ -32,11 +32,11 @@ public class Input
     public string TargetTableName { get; set; }
 
     /// <summary>
-    /// CutuleInfo for time zone information.
+    /// TimeZone for DateTime.
     /// </summary>
-    /// <example>fi-FI.</example>
-    [DefaultValue("fi-FI")]
-    public string CultureInfo { get; set; }
+    /// <example>Central European Standard Time.</example>
+    [DefaultValue("Central European Standard Time")]
+    public TimeZoneInfo TimeZone { get; set; }
 
     /// <summary>
     /// Custom sequence type.
