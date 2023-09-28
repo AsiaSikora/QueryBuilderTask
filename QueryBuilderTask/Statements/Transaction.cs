@@ -9,13 +9,18 @@ namespace QueryBuilderTask.Statements
 {
     public class Transaction
     {
-        public List<Statement> Statements { get; set; } = new ();
+        private List<Statement> Statements { get; } = new ();
 
-        public string ToString(TimeZoneInfo timeZone)
+        public string ToString(TimeZoneInfo timeZone, bool iSTransactional)
         {
-            return @$"BEGIN
+            if (iSTransactional)
+            {
+                return @$"BEGIN
                         {GetStatementLiterals(timeZone)}
                       END;";
+            }
+
+            return $"{GetStatementLiterals(timeZone)}";
         }
 
         public void AddStatement(Statement statement)
@@ -39,11 +44,6 @@ namespace QueryBuilderTask.Statements
             }
 
             return transaction.ToString();
-        }
-
-        public bool IsTransactionEmpty()
-        {
-            return Statements.Count == 0 ? true : false;
         }
     }
 }
