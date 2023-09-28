@@ -126,7 +126,7 @@ internal class UnitTests
 
         string expectedResult = @$"UPDATE {this.TableName} SET 
                                         Name = 'John',
-                                        Active = 1,
+                                        Active = 1
                                     WHERE Id = 1;";
 
         string actualEscaped = TestHelper.RemoveWhitespace(actualResult.Query);
