@@ -6,13 +6,14 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Security.Principal;
 using System.Collections.Generic;
+using System;
 
 [TestFixture]
 internal class UnitTests
 {
     private string[] PrimaryKeys { get; set; } = [ "Id" ];
 
-    private string CultureInfo { get; set; } = "fi-FI";
+    private TimeZoneInfo TimeZone { get; set; } = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
 
     private string Sequence { get; set; } = "SEQ.NEXT_VAL";
 
@@ -29,7 +30,7 @@ internal class UnitTests
             SourceJSONData = sourceJSONString,
             TargetJSONData = targetJSONString,
             PrimaryKeys = this.PrimaryKeys,
-            CultureInfo = this.CultureInfo,
+            TimeZone = this.TimeZone,
             Sequence = this.Sequence,
             TargetTableName = this.TableName,
         };
@@ -50,7 +51,7 @@ internal class UnitTests
                                     ) VALUES (
                                         1,
                                         'John',
-                                        'true'
+                                        1
                                     );
                                  END;";
 
@@ -72,7 +73,7 @@ internal class UnitTests
             SourceJSONData = sourceJSONString,
             TargetJSONData = targetJSONString,
             PrimaryKeys = this.PrimaryKeys,
-            CultureInfo = this.CultureInfo,
+            TimeZone = this.TimeZone,
             Sequence = this.Sequence,
             TargetTableName = this.TableName,
         };
@@ -88,7 +89,7 @@ internal class UnitTests
         string expectedResult = @$"BEGIN
                                     UPDATE {this.TableName} SET 
                                         Name = 'John',
-                                        Active = 'true',
+                                        Active = 1
                                     WHERE Id = 1;
                                  END;";
 
@@ -110,7 +111,7 @@ internal class UnitTests
             SourceJSONData = sourceJSONString,
             TargetJSONData = targetJSONString,
             PrimaryKeys = this.PrimaryKeys,
-            CultureInfo = this.CultureInfo,
+            TimeZone = this.TimeZone,
             Sequence = this.Sequence,
             TargetTableName = this.TableName,
         };
@@ -125,7 +126,7 @@ internal class UnitTests
 
         string expectedResult = @$"UPDATE {this.TableName} SET 
                                         Name = 'John',
-                                        Active = 'true',
+                                        Active = 1,
                                     WHERE Id = 1;";
 
         string actualEscaped = TestHelper.RemoveWhitespace(actualResult.Query);
@@ -146,7 +147,7 @@ internal class UnitTests
             SourceJSONData = sourceJSONString,
             TargetJSONData = targetJSONString,
             PrimaryKeys = this.PrimaryKeys,
-            CultureInfo = this.CultureInfo,
+            TimeZone = this.TimeZone,
             Sequence = this.Sequence,
             TargetTableName = this.TableName,
         };
@@ -173,7 +174,7 @@ internal class UnitTests
             SourceJSONData = sourceJSONString,
             TargetJSONData = targetJSONString,
             PrimaryKeys = ["Name"],
-            CultureInfo = this.CultureInfo,
+            TimeZone = this.TimeZone,
             Sequence = this.Sequence,
             TargetTableName = this.TableName,
         };
@@ -194,7 +195,7 @@ internal class UnitTests
                                     ) VALUES (
                                         {this.Sequence},
                                         'John',
-                                        'true'
+                                        1
                                     );
                                  END;";
 
@@ -211,10 +212,14 @@ internal class UnitTests
         {
             ["Id"] = id,
             ["Name"] = name,
-            ["Active"] = true,
+            ["Active"] = 1,
         };
 
-        var jsonString = JsonConvert.SerializeObject(jsonObject, Formatting.None);
+        JArray array = new JArray();
+
+        array.Add(jsonObject);
+
+        var jsonString = JsonConvert.SerializeObject(array, Formatting.None);
 
         return jsonString;
     }
@@ -224,10 +229,14 @@ internal class UnitTests
         JObject jsonObject = new()
         {
             ["Name"] = name,
-            ["Active"] = true,
+            ["Active"] = 1,
         };
 
-        var jsonString = JsonConvert.SerializeObject(jsonObject, Formatting.None);
+        JArray array = new JArray();
+
+        array.Add(jsonObject);
+
+        var jsonString = JsonConvert.SerializeObject(array, Formatting.None);
 
         return jsonString;
     }
