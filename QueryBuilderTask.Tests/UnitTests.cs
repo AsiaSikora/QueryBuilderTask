@@ -238,12 +238,12 @@ internal class UnitTests
     [Test]
     public void TestQueryWithManyTransactions()
     {
-        var ids1 = new int[] { 1, 2, 3 };
-        var ids2 = new int[] { 4, 5, 6 };
-        var names1 = new string[] { "Ann", "Johny", "Emma" };
-        var names2 = new string[] { "Helen", "Jenny", "Joe" };
-        string sourceJSONString = GetExampleJSONString(ids1, names1);
-        string targetJSONString = GetExampleJSONString(ids2, names2);
+        var idsForSourceData = new int[] { 1, 2, 3 };
+        var idsForTargetData = new int[] { 4, 5, 6 };
+        var namesForSourceData = new string[] { "Ann", "Johny", "Emma" };
+        var namesForTargetData = new string[] { "Helen", "Jenny", "Joe" };
+        string sourceJSONString = GetExampleJSONString(idsForSourceData, namesForSourceData);
+        string targetJSONString = GetExampleJSONString(idsForTargetData, namesForTargetData);
 
         Input input = new Input
         {
@@ -284,6 +284,57 @@ internal class UnitTests
                                     );
                                     END;
                                     BEGIN
+                                    INSERT INTO {this.TableName} (
+                                        Id,
+                                        Name,
+                                        Active
+                                    ) VALUES (
+                                        3,
+                                        'Emma',
+                                        1
+                                    );
+                                 END;";
+
+        string actualEscaped = TestHelper.RemoveWhitespace(actualResult.Query);
+
+        string expectedEscaped = TestHelper.RemoveWhitespace(expectedResult);
+
+        Assert.That(actualEscaped, Is.EqualTo(expectedEscaped));
+    }
+
+    [Test]
+    public void TestQueryWithManySatements()
+    {
+        var idsForSourceData = new int[] { 1, 2, 3 };
+        var idsForTargetData = new int[] { 1, 2, 4 };
+        var namesForSourceData = new string[] { "Ann", "John", "Emma" };
+        var namesForTargetData = new string[] { "Ann", "Johny", "Joe" };
+        string sourceJSONString = GetExampleJSONString(idsForSourceData, namesForSourceData);
+        string targetJSONString = GetExampleJSONString(idsForTargetData, namesForTargetData);
+
+        Input input = new Input
+        {
+            SourceJSONData = sourceJSONString,
+            TargetJSONData = targetJSONString,
+            PrimaryKeys = this.PrimaryKeys,
+            TimeZone = this.TimeZone,
+            Sequence = this.NullSequence,
+            TargetTableName = this.TableName,
+        };
+
+        Options options = new Options
+        {
+            TransactionalResult = true,
+            TransactionSize = 2024,
+        };
+
+        var actualResult = QueryBuilder.CreateQuery(input, options, default);
+
+        string expectedResult = @$"BEGIN
+                                    UPDATE {this.TableName} SET 
+                                        Name = 'John',
+                                        Active = 1
+                                    WHERE Id = 2;
                                     INSERT INTO {this.TableName} (
                                         Id,
                                         Name,
