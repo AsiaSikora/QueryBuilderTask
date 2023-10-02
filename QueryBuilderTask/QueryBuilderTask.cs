@@ -34,13 +34,16 @@ public class QueryBuilder
             // Checking cancellation token.
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Case when the DB entities match.
-            if (transaction.GetStatementCount() == 0)
-                return new Result(String.Empty);
-
             // Create single transaction.
             string transactionStr = transaction.ToString(input.TimeZone, options.TransactionalResult);
             query.AppendLine(transactionStr);
+        }
+
+        string queryWithoutWhiteSpace = QueryBuilderHelper.RemoveWhitespace(query.ToString());
+
+        if (queryWithoutWhiteSpace == "BEGINEND;")
+        {
+            return new Result(String.Empty);
         }
 
         return new Result(query.ToString());
@@ -83,7 +86,7 @@ public class QueryBuilder
             if (statement != null)
                 transaction.AddStatement(statement);
 
-            if (transaction.GetStatementCount() % maxTransactionSize == 0)
+            if ((transaction.GetStatementCount() % maxTransactionSize == 0) && transaction.GetStatementCount() != 0)
             {
                 transactions.Add(transaction);
                 transaction = new Transaction();

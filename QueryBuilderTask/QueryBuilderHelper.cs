@@ -75,5 +75,10 @@ namespace QueryBuilderTask
 
             return words;
         }
+
+        public static string RemoveWhitespace(string str)
+        {
+            return Regex.Replace(str, @"\s", string.Empty);
+        }
     }
 }
