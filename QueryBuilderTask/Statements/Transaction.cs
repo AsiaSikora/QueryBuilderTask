@@ -1,49 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace QueryBuilderTask.Statements
 {
+    /// <summary>
+    /// Transaction class.
+    /// </summary>
     public class Transaction
     {
         private List<Statement> Statements { get; } = new ();
 
-        public string ToString(TimeZoneInfo timeZone, bool iSTransactional)
+        /// <summary>
+        /// String representation of Transaction.
+        /// </summary>
+        /// <param name="timeZone">TimeZone.</param>
+        /// <param name="isTransactional">Is query transactional.</param>
+        public string ToString(TimeZoneInfo timeZone, bool isTransactional)
         {
-            if (iSTransactional)
-            {
-                return @$"BEGIN
-                        {GetStatementLiterals(timeZone)}
-                      END;";
-            }
+            if (isTransactional)
+                return @$"BEGIN {GetStatements(timeZone)} END;";
 
-            return $"{GetStatementLiterals(timeZone)}";
+            return $"{GetStatements(timeZone)}";
         }
 
+        /// <summary>
+        /// Add Statement to list of statement.
+        /// </summary>
+        /// <param name="statement">Statement to add.</param>
         public void AddStatement(Statement statement)
         {
-            Statements.Add(statement);
+            this.Statements.Add(statement);
         }
 
+        /// <summary>
+        /// Get count of statements.
+        /// </summary>
         public int GetStatementCount()
         {
-            return Statements.Count;
+            return this.Statements.Count;
         }
 
-        private string GetStatementLiterals(TimeZoneInfo timeZone)
+        /// <summary>
+        /// Get statements in string format.
+        /// </summary>
+        /// <param name="timeZone">TimeZone.</param>
+        private string GetStatements(TimeZoneInfo timeZone)
         {
-            StringBuilder transaction = new ();
+            StringBuilder transactionString = new ();
 
-            foreach (Statement statement in Statements)
+            foreach (Statement statement in this.Statements)
             {
-                string literal = statement.ToString(timeZone);
-                transaction.AppendLine(literal);
+                string statementString = statement.ToString(timeZone);
+                transactionString.AppendLine(statementString);
             }
 
-            return transaction.ToString();
+            return transactionString.ToString();
         }
     }
 }
