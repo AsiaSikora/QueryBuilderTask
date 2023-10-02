@@ -13,6 +13,6 @@ public class Result
     /// <summary>
     /// Result query string.
     /// </summary>
-    /// <example></example>
+    /// <example>BEGIN UPDATE Table SET Name = 'John' WHERE Id = 1; END;.</example>
     public string Query { get; private set; }
 }
