@@ -1,12 +1,11 @@
 namespace QueryBuilderTask.Tests;
 
-using QueryBuilderTask.Definitions;
-using NUnit.Framework;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using System.Security.Principal;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using QueryBuilderTask.Definitions;
 using System;
+using System.Xml.Linq;
 
 [TestFixture]
 internal class UnitTests
@@ -15,7 +14,9 @@ internal class UnitTests
 
     private TimeZoneInfo TimeZone { get; set; } = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
 
-    private string Sequence { get; set; } = "SEQ.NEXT_VAL";
+    private string Sequence { get; set; } = "SEQ;Id";
+
+    private string NullSequence { get; set; } = "";
 
     private string TableName { get; set; } = "Table2";
 
@@ -31,7 +32,7 @@ internal class UnitTests
             TargetJSONData = targetJSONString,
             PrimaryKeys = this.PrimaryKeys,
             TimeZone = this.TimeZone,
-            Sequence = this.Sequence,
+            Sequence = this.NullSequence,
             TargetTableName = this.TableName,
         };
 
@@ -74,7 +75,7 @@ internal class UnitTests
             TargetJSONData = targetJSONString,
             PrimaryKeys = this.PrimaryKeys,
             TimeZone = this.TimeZone,
-            Sequence = this.Sequence,
+            Sequence = this.NullSequence,
             TargetTableName = this.TableName,
         };
 
@@ -112,7 +113,7 @@ internal class UnitTests
             TargetJSONData = targetJSONString,
             PrimaryKeys = this.PrimaryKeys,
             TimeZone = this.TimeZone,
-            Sequence = this.Sequence,
+            Sequence = this.NullSequence,
             TargetTableName = this.TableName,
         };
 
@@ -148,7 +149,7 @@ internal class UnitTests
             TargetJSONData = targetJSONString,
             PrimaryKeys = this.PrimaryKeys,
             TimeZone = this.TimeZone,
-            Sequence = this.Sequence,
+            Sequence = this.NullSequence,
             TargetTableName = this.TableName,
         };
 
@@ -193,8 +194,103 @@ internal class UnitTests
                                         Name,
                                         Active
                                     ) VALUES (
-                                        {this.Sequence},
+                                        SEQ.NEXT_VAL,
                                         'John',
+                                        1
+                                    );
+                                 END;";
+
+        string actualEscaped = TestHelper.RemoveWhitespace(actualResult.Query);
+
+        string expectedEscaped = TestHelper.RemoveWhitespace(expectedResult);
+
+        Assert.That(actualEscaped, Is.EqualTo(expectedEscaped));
+    }
+
+    [Test]
+    public void TestQuerySequenceWithoutChanges()
+    {
+        string sourceJSONString = GetExampleJSONString("John");
+        string targetJSONString = GetExampleJSONString(1, "John");
+
+        Input input = new Input
+        {
+            SourceJSONData = sourceJSONString,
+            TargetJSONData = targetJSONString,
+            PrimaryKeys = ["Name"],
+            TimeZone = this.TimeZone,
+            Sequence = this.Sequence,
+            TargetTableName = this.TableName,
+        };
+
+        Options options = new Options
+        {
+            TransactionalResult = true,
+            TransactionSize = 2024,
+        };
+
+        var actualResult = QueryBuilder.CreateQuery(input, options, default);
+        string actualEscaped = TestHelper.RemoveWhitespace(actualResult.Query);
+
+        Assert.That(actualEscaped, Is.EqualTo(string.Empty));
+    }
+
+    [Test]
+    public void TestQueryWithManyTransactions()
+    {
+        var ids1 = new int[] { 1, 2, 3 };
+        var ids2 = new int[] { 4, 5, 6 };
+        var names1 = new string[] { "Ann", "Johny", "Emma" };
+        var names2 = new string[] { "Helen", "Jenny", "Joe" };
+        string sourceJSONString = GetExampleJSONString(ids1, names1);
+        string targetJSONString = GetExampleJSONString(ids2, names2);
+
+        Input input = new Input
+        {
+            SourceJSONData = sourceJSONString,
+            TargetJSONData = targetJSONString,
+            PrimaryKeys = this.PrimaryKeys,
+            TimeZone = this.TimeZone,
+            Sequence = this.NullSequence,
+            TargetTableName = this.TableName,
+        };
+
+        Options options = new Options
+        {
+            TransactionalResult = true,
+            TransactionSize = 2,
+        };
+
+        var actualResult = QueryBuilder.CreateQuery(input, options, default);
+
+        string expectedResult = @$"BEGIN
+                                    INSERT INTO {this.TableName} (
+                                        Id,
+                                        Name,
+                                        Active
+                                    ) VALUES (
+                                        1,
+                                        'Ann',
+                                        1
+                                    );
+                                    INSERT INTO {this.TableName} (
+                                        Id,
+                                        Name,
+                                        Active
+                                    ) VALUES (
+                                        2,
+                                        'Johny',
+                                        1
+                                    );
+                                    END;
+                                    BEGIN
+                                    INSERT INTO {this.TableName} (
+                                        Id,
+                                        Name,
+                                        Active
+                                    ) VALUES (
+                                        3,
+                                        'Emma',
                                         1
                                     );
                                  END;";
@@ -235,6 +331,27 @@ internal class UnitTests
         JArray array = new JArray();
 
         array.Add(jsonObject);
+
+        var jsonString = JsonConvert.SerializeObject(array, Formatting.None);
+
+        return jsonString;
+    }
+
+    private static string GetExampleJSONString(int[] ids, string[] names)
+    {
+        JArray array = new JArray();
+        int index = 0;
+        foreach (int id in ids)
+        {
+            JObject jsonObject = new ()
+            {
+                ["Id"] = id,
+                ["Name"] = names[index],
+                ["Active"] = 1,
+            };
+            array.Add(jsonObject);
+            index++;
+        }
 
         var jsonString = JsonConvert.SerializeObject(array, Formatting.None);
 
