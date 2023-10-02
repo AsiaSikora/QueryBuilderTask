@@ -9,8 +9,16 @@ using TimeZoneConverter;
 
 namespace QueryBuilderTask
 {
+    /// <summary>
+    /// QueryBuilderHelper class.
+    /// </summary>
     internal class QueryBuilderHelper
     {
+        /// <summary>
+        /// Create string value depends on JToken type.
+        /// </summary>
+        /// <param name="token">JToken value.</param>
+        /// <param name="timeZone">TimeZone.</param>
         public static string ConvertJTokenToString(JToken token, TimeZoneInfo timeZone)
         {
             switch (token.Type)
@@ -29,22 +37,43 @@ namespace QueryBuilderTask
             }
         }
 
+        /// <summary>
+        /// Create string DateTime value depends on provided TimeZone.
+        /// </summary>
+        /// <param name="token">JToken value.</param>
+        /// <param name="timeZone">TimeZone.</param>
         private static string JTokenTypeDateToString(JToken token, TimeZoneInfo timeZone)
         {
             DateTime datetimeValue = (DateTime)token;
             DateTime.SpecifyKind(datetimeValue, DateTimeKind.Unspecified);
             TimeSpan offset = timeZone.GetUtcOffset(datetimeValue);
-            DateTimeOffset dto = new(datetimeValue, offset);
+            DateTimeOffset dto = new (datetimeValue, offset);
 
             string dateTimeStr = dto.ToString("yyyy-MM-dd\\\"T\\\"HH:mm:ss");
             return $"TO_DATE('{dateTimeStr}', 'YYYY-MM-DD\"T\"HH24:MI:SS')";
         }
 
-        public static void RemoveLastSignAndNewLine(StringBuilder columns)
+        /// <summary>
+        /// Remove last sign and new line from StringBuilder.
+        /// </summary>
+        /// <param name="stringBuilder">String builder.</param>
+        public static void RemoveLastSignAndNewLine(StringBuilder stringBuilder)
         {
             int howManySignsToRemove = Environment.NewLine.Length + 1;
 
-            columns.Remove(columns.Length - howManySignsToRemove, howManySignsToRemove);
+            stringBuilder.Remove(stringBuilder.Length - howManySignsToRemove, howManySignsToRemove);
+        }
+
+        /// <summary>
+        /// Create table of strings splited from string.
+        /// </summary>
+        /// <param name="stringToSplit">String to be split.</param>
+        /// <param name="sign">Sign separates strings in stringToBeSplit.</param>
+        public static string[] SplitString(string stringToSplit, string sign)
+        {
+            string[] words = stringToSplit.Split($"{sign}");
+
+            return words;
         }
     }
 }
