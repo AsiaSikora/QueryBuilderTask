@@ -31,10 +31,24 @@ namespace QueryBuilderTask
                     return token.ToString().Replace(",", ".");
                 case JTokenType.Date:
                     return JTokenTypeDateToString(token, timeZone);
+                case JTokenType.Boolean:
+                    return JTokenTypeBooleanToString(token);
+                case JTokenType.Array:
+                    return token.ToString();
                 default:
                     string errorMessage = $"Cannot convert JTokenType: {token.Type} to string!";
                     throw new Exception(errorMessage);
             }
+        }
+
+        private static string JTokenTypeBooleanToString(JToken token)
+        {
+            if ((bool)token == true)
+                return "1";
+            else if ((bool)token == false)
+                return "0";
+
+            throw new Exception("lakjfdekfh");
         }
 
         /// <summary>
