@@ -1,7 +1,8 @@
-namespace QueryBuilderTask.Tests;
+﻿namespace QueryBuilderTask.Tests;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using NUnit.Framework;
 using QueryBuilderTask.Definitions;
 using System;
@@ -345,6 +346,55 @@ internal class UnitTests
                                         1
                                     );
                                  END;";
+
+        string actualEscaped = TestHelper.RemoveWhitespace(actualResult.Query);
+
+        string expectedEscaped = TestHelper.RemoveWhitespace(expectedResult);
+
+        Assert.That(actualEscaped, Is.EqualTo(expectedEscaped));
+    }
+
+    [Test]
+    public void TestQueryWithWitjJArray()
+    {
+        string sourceJSONString = TestHelper.JsonStringSource;
+        string targetJSONString = TestHelper.JsonStringTarget;
+        
+        Input input = new Input
+        {
+            SourceJSONData = sourceJSONString,
+            TargetJSONData = targetJSONString,
+            PrimaryKeys = ["id"],
+            TimeZone = this.TimeZone,
+            Sequence = this.NullSequence,
+            TargetTableName = this.TableName,
+        };
+
+        Options options = new Options
+        {
+            TransactionalResult = true,
+            TransactionSize = 2024,
+        };
+
+        var actualResult = QueryBuilder.CreateQuery(input, options, default);
+
+        string expectedResult = @$"BEGIN 
+                                    UPDATE Table2 SET 
+                                    adult = 0,
+                                    backdrop_path = '/jllyc0pY7xFYLyjuCEP6pO7hm8t.jpg',
+                                    genre_ids = [  80,  35,  53],
+                                    original_language = 'en',
+                                    original_title = 'Gołł',
+                                    overview = 'Grocery store clerk Simon occasionally sells drugs from his cash register at work, so when soap opera actors Adam and Zack come looking for Ecstasy on a quiet Christmas Eve, they are surprised to find Ronna covering his shift. Desperate for money, Ronna decides to become an impromptu drug dealer, unaware that Adam and Zack are secretly working for obsessed narcotics officer Burke.',
+                                    popularity = 13.444,
+                                    poster_path = '/kP0OOAa4GTZSUPW8fgPbk1OmKEW.jpg',
+                                    release_date = '1999-04-09',
+                                    title = 'Go',
+                                    video = 0,
+                                    vote_average = 6.901,
+                                    vote_count = 625 
+                                    WHERE id = 9430; 
+                                  END;";
 
         string actualEscaped = TestHelper.RemoveWhitespace(actualResult.Query);
 
