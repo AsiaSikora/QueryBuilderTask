@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace QueryBuilderTask.Statements
 {
@@ -9,7 +10,18 @@ namespace QueryBuilderTask.Statements
     /// </summary>
     public class Transaction
     {
+        private CancellationToken cancellationToken;
+
         private List<Statement> Statements { get; } = new ();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Transaction"/> class.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token given by Frends.</param>
+        public Transaction(CancellationToken cancellationToken)
+        {
+            this.cancellationToken = cancellationToken;
+        }
 
         /// <summary>
         /// String representation of Transaction.
@@ -53,6 +65,7 @@ namespace QueryBuilderTask.Statements
             {
                 string statementString = statement.ToString(timeZone);
                 transactionString.AppendLine(statementString);
+                this.cancellationToken.ThrowIfCancellationRequested();
             }
 
             return transactionString.ToString();

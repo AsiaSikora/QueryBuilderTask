@@ -25,7 +25,7 @@ public class QueryBuilder
     /// <returns>Query string.</returns>
     public static Result CreateQuery([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
     {
-        var transactions = CreateTransactions(input, options);
+        var transactions = CreateTransactions(input, options, cancellationToken);
 
         StringBuilder query = new ();
 
@@ -54,7 +54,8 @@ public class QueryBuilder
     /// </summary>
     /// <param name="input">Input parameters for create query.</param>
     /// <param name="options">Teansaction properties.</param>
-    private static List<Transaction> CreateTransactions(Input input, Options options)
+    /// <param name="cancellationToken">Cancellation token given by Frends.</param>
+    private static List<Transaction> CreateTransactions(Input input, Options options, CancellationToken cancellationToken)
     {
         #region Initialization of variables
         string tableName = input.TargetTableName;
@@ -74,7 +75,7 @@ public class QueryBuilder
             tableIdentifier = QueryBuilderHelper.SplitString(input.Sequence, ";")[1];
         }
 
-        Transaction transaction = new();
+        Transaction transaction = new(cancellationToken);
 
         // Adding statements to transations.
         for (int i = 0; i < sourceJSONData.Count; i++)
@@ -89,7 +90,7 @@ public class QueryBuilder
             if ((transaction.GetStatementCount() % maxTransactionSize == 0) && transaction.GetStatementCount() != 0)
             {
                 transactions.Add(transaction);
-                transaction = new Transaction();
+                transaction = new Transaction(cancellationToken);
             }
 
             if (i == sourceJSONData.Count - 1)
